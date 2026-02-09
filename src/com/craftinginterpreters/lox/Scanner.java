@@ -27,6 +27,7 @@ class Scanner {
 
     private void scanToken() {
         char c = advance();
+
         switch (c) {
             case '(' -> addToken(TokenType.LEFT_PAREN);
             case ')' -> addToken(TokenType.RIGHT_PAREN);
@@ -39,7 +40,7 @@ class Scanner {
             case ';' -> addToken(TokenType.SEMICOLON);
             case '*' -> addToken(TokenType.STAR);
 
-            case '/':
+            case '/' -> {
                 if (match('/')) {
                     while (peek() != '\n' && !isAtEnd()) advance();
                 } else if (match('*')) {
@@ -47,20 +48,17 @@ class Scanner {
                 } else {
                     addToken(TokenType.SLASH);
                 }
-                break;
+            }
 
-            case ' ':
-            case '\r':
-            case '\t':
-                break;
+            case ' ', '\r', '\t' -> {
+                // ignore whitespace
+            }
 
-            case '\n':
-                line++;
-                break;
+            case '\n' -> line++;
 
-            default:
-                // For this assignment, we can ignore other cases
-                break;
+            default -> {
+                // Ignore other characters
+            }
         }
     }
 
@@ -74,17 +72,13 @@ class Scanner {
                 advance();
                 advance();
                 depth++;
-                continue;
-            }
-
-            if (peek() == '*' && peekNext() == '/') {
+            } else if (peek() == '*' && peekNext() == '/') {
                 advance();
                 advance();
                 depth--;
-                continue;
+            } else {
+                advance();
             }
-
-            advance();
         }
     }
 
@@ -97,12 +91,8 @@ class Scanner {
     }
 
     private void addToken(TokenType type) {
-        addToken(type, null);
-    }
-
-    private void addToken(TokenType type, Object literal) {
         String text = source.substring(start, current);
-        tokens.add(new Token(type, text, literal, line));
+        tokens.add(new Token(type, text, null, line));
     }
 
     private boolean match(char expected) {
@@ -120,5 +110,12 @@ class Scanner {
     private char peekNext() {
         if (current + 1 >= source.length()) return '\0';
         return source.charAt(current + 1);
+    }
+
+    // for testing scanner useage
+    static void selfTest() {
+        String testSource = "/* block comment */ ()";
+        Scanner scanner = new Scanner(testSource);
+        scanner.scanTokens();
     }
 }
